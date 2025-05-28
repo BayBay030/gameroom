@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+
+  <!--隱藏影片 + 調音介面 index -->
+
+  <title>多組播放器 + 調音控制</title>
+  <style>
+    body {
+      background-color: #ffffff;
+      font-family: sans-serif;
+      color: #fff;
+      margin: 0;
+      padding: 2rem;
+    }
+
+    .container {
+      display: flex;
+      gap: 2rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+/* 調播放器*/
+    .player-module {
+      background: #f6e4f5;   /* 改背景色 */
+     border: 2px solid #9466a0;       /* 加框線顏色 */
+    box-shadow: 0 0 10px #00ffff44;  /* 加一點光暈 */
+      padding: 1rem;
+      border-radius: 10px;
+      width: 300px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* 調圖片*/
+.cover {
+  width: 100%;           /* 改為固定寬度也可以，例如 250px */
+  height: 280px;         /* 改為更高或更低 */
+  background-size: contain;     /* ✅ 不裁圖，完整縮放顯示 */
+  background-position: center center;   /* ✅ 水平 + 垂直置中 */
+    background-repeat: no-repeat;     /* ✅ 避免重複顯示 */
+  border-radius: 6px;
+  margin-bottom: 1rem;
+}
+
+    .controls {
+      width: 100%;
+    }
+
+    input[type="range"] {
+      width: 100%;
+    }
+
+    video {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <h1 style="text-align:center">多組音訊調音播放</h1>
+
+  <div class="container">
+
+    <!-- Player 1 -->
+    <div class="player-module" data-id="1">
+      <div class="cover" style="background-image: url('image/coffee.png')"></div>
+      <button class="start-btn">▶️ 播放</button>
+      <div class="controls">
+        <label>音量</label>
+        <input type="range" class="volume" min="0" max="2" step="0.01" value="1">
+        <label>低音</label>
+        <input type="range" class="bass" min="-40" max="40" value="0">
+      </div>
+      <video src="/audio/jazz_1.mp4" loop></video>
+    </div>
+
+    <!-- Player 2 -->
+    <div class="player-module" data-id="2">
+      <div class="cover" style="background-image: url('image/bird.png')"></div>
+      <button class="start-btn">▶️ 播放</button>
+
+      <div class="controls">
+        <label>音量</label>
+        <input type="range" class="volume" min="0" max="2" step="0.01" value="1">
+        <label>低音</label>
+        <input type="range" class="bass" min="-40" max="40" value="0">
+      </div>
+      <video src="audio/forest.mp4" loop></video>
+    </div>
+
+    
+    <!-- Player 3 -->
+    <div class="player-module" data-id="3">
+      <div class="cover" style="background-image: url('image/people.png')"></div>
+      <button class="start-btn">▶️ 播放</button>
+
+      <div class="controls">
+        <label>音量</label>
+        <input type="range" class="volume" min="0" max="2" step="0.01" value="1">
+        <label>低音</label>
+        <input type="range" class="bass" min="-40" max="40" value="0">
+      </div>
+      <video src="audio/people1.mp3" loop></video>
+    </div>
+
+  </div>
+
+  <script>
+    const modules = document.querySelectorAll('.player-module');
+
+modules.forEach(module => {
+  const video = module.querySelector('video');
+  const playBtn = module.querySelector('.start-btn');
+  const volumeSlider = module.querySelector('.volume');
+  const bassSlider = module.querySelector('.bass');
+
+  let audioCtx, sourceNode, gainNode, bassEQ;
+  let isPlaying = false;
+
+  playBtn.addEventListener('click', () => {
+    if (!audioCtx) {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      sourceNode = audioCtx.createMediaElementSource(video);
+
+      gainNode = audioCtx.createGain();
+      bassEQ = audioCtx.createBiquadFilter();
+      bassEQ.type = 'lowshelf';
+      bassEQ.frequency.value = 250;
+      bassEQ.gain.value = 0;
+
+      sourceNode.connect(bassEQ).connect(gainNode).connect(audioCtx.destination);
+
+      volumeSlider.addEventListener('input', e => {
+        gainNode.gain.value = parseFloat(e.target.value);
+      });
+
+      bassSlider.addEventListener('input', e => {
+        bassEQ.gain.value = parseFloat(e.target.value);
+      });
+    }
+
+    if (!isPlaying) {
+      video.play();
+      playBtn.textContent = '⏸️ 暫停';
+      isPlaying = true;
+    } else {
+      video.pause();
+      playBtn.textContent = '▶️ 播放';
+      isPlaying = false;
+    }
+  });
+});
+
+  </script>
+
+</body>
+</html>
